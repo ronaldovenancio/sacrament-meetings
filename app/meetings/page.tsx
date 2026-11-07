@@ -1,21 +1,8 @@
-import { getBaseUrl } from "@/lib/api";
 import MeetingCard from "@/components/MeetingCard";
-import type { SacramentMeeting } from "@/lib/types";
-
-async function getMeetings(): Promise<SacramentMeeting[]> {
-  const response = await fetch(`${getBaseUrl()}/api/meetings`, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch meetings");
-  }
-
-  return response.json();
-}
+import { getMeetings } from "@/lib/meetings-db";
 
 export default async function MeetingsPage() {
-  const meetings = await getMeetings();
+  const meetings = getMeetings();
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">

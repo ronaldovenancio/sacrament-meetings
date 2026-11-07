@@ -1,10 +1,9 @@
-import PrintButton from "@/components/PrintButton";
-import { getBaseUrl } from "@/lib/api";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 import MeetingDetail from "@/components/MeetingDetail";
-import type { SacramentMeeting } from "@/lib/types";
+import PrintButton from "@/components/PrintButton";
+import { getMeetingById } from "@/lib/meetings-db";
 
 type MeetingPageProps = {
   params: Promise<{
@@ -12,31 +11,18 @@ type MeetingPageProps = {
   }>;
 };
 
-async function getMeeting(id: string): Promise<SacramentMeeting | null> {
-  const response = await fetch(
-   `${getBaseUrl()}/api/meetings/${id}`,
-    {
-      cache: "no-store",
-    },
-  );
-
-  if (response.status === 404 || response.status === 400) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch meeting");
-  }
-
-  return response.json();
-}
-
 async function MeetingContent({
   params,
 }: MeetingPageProps) {
   const { id } = await params;
 
-  const meeting = await getMeeting(id);
+  const meetingId = Number(id);
+
+  if (Number.isNaN(meetingId)) {
+    notFound();
+  }
+
+  const meeting = getMeetingById(meetingId);
 
   if (!meeting) {
     notFound();
@@ -53,6 +39,7 @@ export default function MeetingPage({
       <div className="mb-6 flex justify-end print:hidden">
         <PrintButton />
       </div>
+
       <Suspense
         fallback={
           <p className="text-slate-600">
