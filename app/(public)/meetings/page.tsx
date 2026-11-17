@@ -1,10 +1,6 @@
-import MeetingCard from "@/components/MeetingCard";
+import { Suspense } from "react";
 import { MeetingSearch } from "@/components/MeetingSearch";
-import { Pagination } from "@/components/Pagination";
-import {
-  getMeetings,
-  getMeetingsTotalPages,
-} from "@/lib/meetings-db";
+import MeetingsList from "@/components/MeetingsList";
 
 export default async function MeetingsPage(props: {
   searchParams?: Promise<{ query?: string; page?: string }>;
@@ -12,11 +8,6 @@ export default async function MeetingsPage(props: {
   const searchParams = await props.searchParams;
   const query = searchParams?.query ?? "";
   const currentPage = Number(searchParams?.page) || 1;
-
-  const [meetings, totalPages] = await Promise.all([
-    getMeetings(query, currentPage),
-    getMeetingsTotalPages(query),
-  ]);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -34,15 +25,19 @@ export default async function MeetingsPage(props: {
         <MeetingSearch />
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
-        {meetings.map((meeting) => (
-          <MeetingCard key={meeting.id} meeting={meeting} />
-        ))}
-      </div>
-
-      <div className="mt-8">
-        <Pagination totalPages={totalPages} />
-      </div>
+      <Suspense
+        key={`${query}-${currentPage}`}
+        fallback={
+          <p className="text-slate-600">
+            Loading meeting information...
+          </p>
+        }
+      >
+        <MeetingsList
+          query={query}
+          currentPage={currentPage}
+        />
+      </Suspense>
     </main>
   );
 }
