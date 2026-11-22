@@ -1,5 +1,8 @@
 'use server';
 
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
+
 import {
   addMeeting,
   updateMeeting as updateMeetingDb,
@@ -8,11 +11,24 @@ import {
 import { MeetingFormSchema, type State } from './meeting-schema';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { auth } from '@/auth';
+
+async function requireOwnerSession() {
+  const session = await auth();
+
+  if (!session?.user) {
+    throw new Error('Not authenticated');
+  }
+
+  return session;
+}
 
 export async function createMeeting(
   prevState: State,
   formData: FormData
 ): Promise<State> {
+  await requireOwnerSession();
+
   const validatedFields = MeetingFormSchema.safeParse({
     date: formData.get('date'),
     meetingType: formData.get('meetingType'),
@@ -102,6 +118,8 @@ export async function updateMeeting(
   prevState: State,
   formData: FormData
 ): Promise<State> {
+  await requireOwnerSession();
+
   const validatedFields = MeetingFormSchema.safeParse({
     date: formData.get('date'),
     meetingType: formData.get('meetingType'),
@@ -191,6 +209,8 @@ export async function updateMeeting(
 }
 
 export async function deleteMeeting(id: number): Promise<void> {
+  await requireOwnerSession();
+
   try {
     const deleted = await deleteMeetingDb(id);
 
@@ -204,4 +224,24 @@ export async function deleteMeeting(id: number): Promise<void> {
 
   revalidatePath('/meetings');
   redirect('/meetings');
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+): Promise<string | undefined> {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid email or password.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+
+    throw error;
+  }
 }
