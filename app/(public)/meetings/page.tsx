@@ -1,6 +1,13 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { MeetingSearch } from "@/components/MeetingSearch";
 import MeetingsList from "@/components/MeetingsList";
+
+export const metadata: Metadata = {
+  title: "Meetings",
+  description:
+    "Browse current and past sacrament meeting programs.",
+};
 
 export default async function MeetingsPage(props: {
   searchParams?: Promise<{ query?: string; page?: string }>;

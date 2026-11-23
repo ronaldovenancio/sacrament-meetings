@@ -14,8 +14,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sacrament Meeting Planner",
-  description: "Plan and review sacrament meeting agendas.",
+  title: {
+    default: "Sacrament Meeting Planner",
+    template: "%s | Sacrament Meeting Planner",
+  },
+  description:
+    "Plan, organize, and review sacrament meeting programs.",
 };
 
 export default function RootLayout({

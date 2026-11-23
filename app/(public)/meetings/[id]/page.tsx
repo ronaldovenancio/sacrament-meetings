@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import MeetingDetail from "@/components/MeetingDetail";
@@ -10,6 +11,34 @@ type MeetingPageProps = {
     id: string;
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: MeetingPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const meetingId = Number(id);
+
+  if (Number.isNaN(meetingId)) {
+    return {
+      title: "Meeting Not Found",
+      description: "The requested sacrament meeting could not be found.",
+    };
+  }
+
+  const meeting = await getMeetingById(meetingId);
+
+  if (!meeting) {
+    return {
+      title: "Meeting Not Found",
+      description: "The requested sacrament meeting could not be found.",
+    };
+  }
+
+  return {
+    title: `Sacrament Meeting - ${meeting.date}`,
+    description: `View the sacrament meeting program for ${meeting.date}.`,
+  };
+}
 
 async function MeetingContent({
   params,
