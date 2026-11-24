@@ -231,7 +231,10 @@ export async function authenticate(
   formData: FormData
 ): Promise<string | undefined> {
   try {
-    await signIn('credentials', formData);
+    await signIn('credentials', {
+      ...Object.fromEntries(formData),
+      redirectTo: '/meetings',
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
